@@ -1,0 +1,91 @@
+-- Create database
+CREATE DATABASE IF NOT EXISTS payroll_system;
+USE payroll_system;
+
+-- Admin table for login
+CREATE TABLE IF NOT EXISTS admin (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Employees table
+CREATE TABLE IF NOT EXISTS employees (
+    emp_id VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    department VARCHAR(50),
+    position VARCHAR(50),
+    basic_salary DECIMAL(10, 2),
+    hire_date DATE,
+    contact VARCHAR(20),
+    email VARCHAR(100),
+    bank_account VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Attendance table
+CREATE TABLE IF NOT EXISTS attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    emp_id VARCHAR(20),
+    date DATE NOT NULL,
+    status ENUM('Present', 'Absent', 'Half Day', 'Leave') NOT NULL,
+    hours_worked DECIMAL(4, 2),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (emp_id) REFERENCES employees(emp_id) ON DELETE CASCADE,
+    UNIQUE KEY (emp_id, date)
+);
+
+-- Leave table
+CREATE TABLE IF NOT EXISTS leaves (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    emp_id VARCHAR(20),
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    leave_type ENUM('Sick Leave', 'Casual Leave', 'Earned Leave', 'Maternity Leave', 'Paternity Leave', 'Unpaid Leave') NOT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (emp_id) REFERENCES employees(emp_id) ON DELETE CASCADE
+);
+
+-- Payroll table
+CREATE TABLE IF NOT EXISTS payroll (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    emp_id VARCHAR(20),
+    month TINYINT NOT NULL,
+    year SMALLINT NOT NULL,
+    basic_salary DECIMAL(10, 2) NOT NULL,
+    overtime_pay DECIMAL(10, 2) DEFAULT 0,
+    allowances DECIMAL(10, 2) DEFAULT 0,
+    deductions DECIMAL(10, 2) DEFAULT 0,
+    tax_amount DECIMAL(10, 2) DEFAULT 0,
+    net_salary DECIMAL(10, 2) NOT NULL,
+    status ENUM('Pending', 'Paid') DEFAULT 'Pending',
+    payment_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (emp_id) REFERENCES employees(emp_id) ON DELETE CASCADE,
+    UNIQUE KEY (emp_id, month, year)
+);
+
+-- Loans table
+CREATE TABLE IF NOT EXISTS loans (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    emp_id VARCHAR(20),
+    amount DECIMAL(10, 2) NOT NULL,
+    start_date DATE NOT NULL,
+    duration_months INT NOT NULL,
+    monthly_payment DECIMAL(10, 2) NOT NULL,
+    remaining_amount DECIMAL(10, 2) NOT NULL,
+    status ENUM('Active', 'Completed') DEFAULT 'Active',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (emp_id) REFERENCES employees(emp_id) ON DELETE CASCADE
+);
